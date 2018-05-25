@@ -1,4 +1,4 @@
-functionhood: Compute distance-k neighbours of any monotone Boolean Function
+FunctionHood: Compute distance-k neighbours of any monotone Boolean Function
 =========================================================
 
 The aim of this project is to, given a monotone Boolean function, be able to compute 
