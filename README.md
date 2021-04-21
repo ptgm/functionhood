@@ -10,11 +10,8 @@ How to use it?
 To compile it you will need is java6 JDK and [maven](http://maven.apache.org/).
 
 * grab the source from github
-* run "mvn package" to compile and package it
-* you can use the jar in the "target" subdirectory.
-
-    mvn package
-		cd target/
+* compile and package it: `mvn package`
+* you can use the jar in the "target" subdirectory: `cd target/`
 
 You can either integrate the .jar file in your tool, or launch the GUI to compute immediate neighbour functions, as follows:
 
