@@ -1,8 +1,7 @@
-FunctionHood: Compute distance-k neighbours of any monotone Boolean Function
+FunctionHood: Compute direct neighbours of any monotone Boolean Function
 =========================================================
 
-The aim of this project is to, given a monotone Boolean function, be able to compute 
-its closely related functions without the need to generate all possible O(2^2^n) Boolean functions.
+This project aims to, given a Boolean function, compute its direct neighbours in the Partially Ordered Set of monotone Boolean functions, without the need to generate the whole set. The set-representation is used to specify monotone Boolean functions.
 
 
 How to use it?
@@ -14,9 +13,12 @@ To compile it you will need is java6 JDK and [maven](http://maven.apache.org/).
 * run "mvn package" to compile and package it
 * you can use the jar in the "target" subdirectory.
 
+    mvn package
+		cd target/
+
 You can either integrate the .jar file in your tool, or launch the GUI to compute immediate neighbour functions, as follows:
 
-    java -jar FunctionHood-0.1.jar
+    java -jar FunctionHood.jar
 
 Licence
 -------
@@ -24,11 +26,17 @@ Licence
 This code is available under GPL-3.0.
 
 
+Cite
+----
+
+This work is available on arXiv: [https://arxiv.org/abs/1901.07623](https://arxiv.org/abs/1901.07623).
+
+
 Authors
 -------
 
-José E. R. Cury
+José E. R. Cury [http://buscatextual.cnpq.br/buscatextual/visualizacv.do?id=K4787745U6](http://buscatextual.cnpq.br/buscatextual/visualizacv.do?id=K4787745U6)
 
-Pedro T. Monteiro
+Pedro T. Monteiro [http://pedromonteiro.org/](http://pedromonteiro.org/)
 
-Claudine Chaouiya
+Claudine Chaouiya [http://mabios.math.cnrs.fr/perso/chaouiya.html](http://mabios.math.cnrs.fr/perso/chaouiya.html)
