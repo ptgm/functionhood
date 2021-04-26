@@ -36,4 +36,4 @@ José E. R. Cury [http://buscatextual.cnpq.br/buscatextual/visualizacv.do?id=K47
 
 Pedro T. Monteiro [http://pedromonteiro.org/](http://pedromonteiro.org/)
 
-Claudine Chaouiya [http://mabios.math.cnrs.fr/perso/chaouiya.html](http://mabios.math.cnrs.fr/perso/chaouiya.html)
+Claudine Chaouiya [https://claudine-chaouiya.pedaweb.univ-amu.fr/](https://claudine-chaouiya.pedaweb.univ-amu.fr/)
