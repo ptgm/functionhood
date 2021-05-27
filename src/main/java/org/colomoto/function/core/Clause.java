@@ -10,7 +10,8 @@ import java.util.Set;
  * 
  * @author Pedro T. Monteiro
  * @author Jose' R. Cury
- *
+ * @author Claudine Chaouiya
+ * 
  */
 public class Clause {
 	private int size;
@@ -23,7 +24,7 @@ public class Clause {
 
 	public Clause(int nvars) {
 		this(nvars, new BitSet(nvars));
-		this.signature.set(0, nvars);
+		this.signature.set(0, nvars, true);
 	}
 
 	public BitSet getSignature() {
@@ -40,6 +41,8 @@ public class Clause {
 
 	public boolean equals(Object o) {
 		Clause co = (Clause) o;
+		if (this.size != co.size || this.signature.cardinality() != co.signature.cardinality())
+			return false;
 		for (int i = 0; i < this.size; i++) {
 			if (this.signature.get(i) != co.signature.get(i)) {
 				return false;
@@ -48,46 +51,25 @@ public class Clause {
 		return true;
 	}
 
-	public boolean dominatesStrictly(Set<Clause> sClauses) {
-		boolean bDominates = false;
-		for (Clause c : sClauses) {
-			if (this.isLargerOrEqual(c) && !this.equals(c)) {
-				bDominates = true;
-				break;
-			}
-		}
-		return bDominates;
-	}
-
-	public boolean dominates(Set<Clause> sClauses) {
-		boolean bDominates = false;
-		for (Clause c : sClauses) {
-			if (this.isLargerOrEqual(c) && !this.equals(c)) {
-				bDominates = true;
-				break;
-			}
-		}
-		return bDominates;
-	}
-
-	public boolean isLargerOrEqual(Clause c) {
+	public boolean dominatesOrEqualTo(Clause c) {
 		for (int i = 0; i < this.size; i++) {
-			if (this.signature.get(i) && !c.signature.get(i)) {
+			if (c.signature.get(i) && !this.signature.get(i)) {
 				return false;
 			}
 		}
 		return true;
 	}
+	
+	public boolean dominatesStrictly(Clause c) {
+		return this.dominatesOrEqualTo(c) && !this.equals(c);
+	}
 
-	public boolean isSmallerOrEqual(Clause c) {
-		for (int i = 0; i < this.size; i++) {
-			if (c.signature.get(i)) {
-				if (!this.signature.get(i)) {
-					return false;
-				}
-			}
-		}
-		return true;
+	public boolean dominatedOrEqualTo(Clause c) {
+		return c.dominatesOrEqualTo(this);
+	}
+	
+	public boolean dominatedStrictly(Clause c) {
+		return c.dominatesStrictly(this);
 	}
 
 	public boolean isSet(int pos) {
@@ -95,8 +77,7 @@ public class Clause {
 	}
 
 	public boolean isIndependent(Clause c) {
-		return !this.equals(c) && !this.isLargerOrEqual(c)
-				&& !this.isSmallerOrEqual(c);
+		return !this.equals(c) && !this.dominatesOrEqualTo(c) && !this.dominatedOrEqualTo(c);
 	}
 
 	public boolean isIndependent(Set<Clause> sClauses) {
@@ -107,6 +88,28 @@ public class Clause {
 		}
 		return true;
 	}
+	
+	public boolean contains(Set<Clause> sClauses) {
+System.out.println(" " + this + " contains? any of " + sClauses);
+		for (Clause c : sClauses) {
+			if (this.dominatesOrEqualTo(c)) {
+				System.out.println("  true");
+				return true;
+			}
+		}
+		System.out.println("  false");
+		return false;
+	}
+	
+	public boolean isContainedIn(Set<Clause> sClauses) {
+		for (Clause c : sClauses) {
+			if (this.dominatedStrictly(c)) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 
 	public String toString() {
 		String s = "{";
@@ -116,7 +119,7 @@ public class Clause {
 				if (!first)
 					s += ",";
 				first = false;
-				s+= i+1;
+				s += i + 1;
 			}
 //			s += this.signature.get(i) ? i+1 : "";
 		}

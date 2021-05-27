@@ -21,15 +21,11 @@ public class Formula {
 
 	public Formula(int nvars, Set<Clause> clauses) {
 		this.nvars = nvars;
-		this.varRepresented = new BitSet(this.nvars);
-		for (Clause c : clauses) {
-			this.varRepresented.or(c.getSignature());
-		}
 		this.clauses = new HashSet<Clause>(clauses);
 		this.updateConsistency();
 	}
 
-	// Only to be used by clone()
+	// Only to be used by cloneAdd(Clause c)
 	private Formula() {
 	}
 
@@ -38,7 +34,11 @@ public class Formula {
 		f.nvars = this.nvars;
 		f.clauses = new HashSet<Clause>(this.clauses);
 		f.clauses.add(c);
-		f.consistent = this.consistent;
+		f.varRepresented = new BitSet(f.nvars);
+		for (Clause ci : f.clauses) {
+			f.varRepresented.or(ci.getSignature());
+		}
+		f.updateConsistency();
 		return f;
 	}
 
@@ -80,7 +80,7 @@ public class Formula {
 
 	public void addClause(Clause c) {
 		this.clauses.add(c);
-		// FIXME this.varRepresented.or(c.getSignature());
+		this.varRepresented.or(c.getSignature());
 		this.updateConsistency();
 	}
 
@@ -93,8 +93,7 @@ public class Formula {
 	}
 
 	private void updateConsistency() {
-		this.consistent = this.independentClauses()
-				&& this.allVarsRepresented();
+		this.consistent = this.independentClauses() && this.isCover();
 	}
 
 	private boolean independentClauses() {
@@ -109,11 +108,19 @@ public class Formula {
 		return true;
 	}
 
+	private boolean isCover() {
+		this.varRepresented = new BitSet(this.nvars);
+		for (Clause c : clauses) {
+			this.varRepresented.or(c.getSignature());
+		}
+		return this.varRepresented.cardinality() == this.nvars;
+	}
+
 	public boolean isSmallerThan(Formula f) {
 		for (Clause tf : this.clauses) {
 			boolean bSmall = false;
 			for (Clause cf : f.clauses) {
-				if (tf.isSmallerOrEqual(cf)) {
+				if (tf.dominatedOrEqualTo(cf)) {
 					bSmall = true;
 					break;
 				}
@@ -123,10 +130,6 @@ public class Formula {
 			}
 		}
 		return true;
-	}
-
-	private boolean allVarsRepresented() {
-		return this.varRepresented.cardinality() == this.nvars;
 	}
 
 	public String toString() {

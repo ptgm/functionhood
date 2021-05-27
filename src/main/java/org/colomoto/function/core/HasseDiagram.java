@@ -13,6 +13,7 @@ import java.util.Set;
  * 
  * @author Pedro T. Monteiro
  * @author José R. Cury
+ * @author Claudine Chaouiya
  *
  */
 public class HasseDiagram {
@@ -36,7 +37,7 @@ public class HasseDiagram {
 		return this.nvars;
 	}
 
-	public Set<Formula> getAncestors(Formula fInit, boolean degenerated) {
+	public Set<Formula> getFormulaAncestors(Formula fInit, boolean degenerated) {
 		Set<Formula> sExplored = new HashSet<Formula>();
 		Set<Formula> sToExplore = new HashSet<Formula>();
 		sToExplore.add(fInit);
@@ -54,30 +55,32 @@ public class HasseDiagram {
 		Set<Formula> sFprime = new HashSet<Formula>();
 
 		// from the 1st rule
-		Set<Clause> sID = this.powerSet.getIndependentClauses(f.getClauses());
-		for (Clause c : sID) {
+System.out.println("F: " + f);
+System.out.println("Indep: " + this.powerSet.getIndependent(f.getClauses()));
+System.out.println("MaxId: " + this.powerSet.getMaximal(this.powerSet.getIndependent(f.getClauses())));
+		Set<Clause> sMaxIndpt = this.powerSet.getMaximal(this.powerSet.getIndependent(f.getClauses()));
+		for (Clause c : sMaxIndpt) {
 			Formula fprime = f.cloneAdd(c);
 			sFprime.add(fprime);
 		}
 
 		// from 2nd rule
-		Set<Clause> sAllParents = new HashSet<Clause>();
+		Set<Clause> sAllDominated = new HashSet<Clause>();
 		for (Clause c : sfClauses) {
-			sAllParents.addAll(this.powerSet.getComputedFathers(c));
+			sAllDominated.addAll(this.powerSet.getDominatedDirectly(c));
 		}
 
-		// get minimal parents that do not dominate sID
-		Set<Clause> sMinParents = this.powerSet.getMinimal(sAllParents);
-		List<Clause> lR2cand = new ArrayList<Clause>();
-		for (Clause c : sMinParents) {
-			if (!c.dominates(sID)) {
-				lR2cand.add(c);
+		// get maximal dominated sets, not included in an independent set sID
+		List<Clause> lCandidates = new ArrayList<Clause>();
+		for (Clause c : this.powerSet.getMaximal(sAllDominated)) {
+			if (c.isIndependent(sMaxIndpt)) {
+				lCandidates.add(c);
 			}
 		}
 
 		HashSet<Clause> sCand = new HashSet<Clause>();
-		for (int i = 0; i < lR2cand.size(); i++) {
-			Clause ci = lR2cand.get(i);
+		for (int i = 0; i < lCandidates.size(); i++) {
+			Clause ci = lCandidates.get(i);
 			sCand.add(ci);
 			Formula fPrime = this.getConsistentFormula(sfClauses, sCand);
 			if (fPrime.isConsistent()) {
@@ -86,8 +89,8 @@ public class HasseDiagram {
 				if (degenerated) {
 					sFprime.add(fPrime);
 				} else {
-					for (int j = i + 1; j < lR2cand.size(); j++) {
-						Clause cj = lR2cand.get(j);
+					for (int j = i + 1; j < lCandidates.size(); j++) {
+						Clause cj = lCandidates.get(j);
 						sCand.add(cj);
 						fPrime = this.getConsistentFormula(sfClauses, sCand);
 						if (fPrime.isConsistent()) {
@@ -103,7 +106,7 @@ public class HasseDiagram {
 		return sFprime;
 	}
 
-	public Set<Formula> getDescendants(Formula fInit, boolean degenerated) {
+	public Set<Formula> getFormulaDescendants(Formula fInit, boolean degenerated) {
 		Set<Formula> sExplored = new HashSet<Formula>();
 		Set<Formula> sToExplore = new HashSet<Formula>();
 		sToExplore.add(fInit);
@@ -116,63 +119,68 @@ public class HasseDiagram {
 		return sExplored;
 	}
 
+
 	public Set<Formula> getFormulaChildren(Formula f, boolean degenerated) {
 		Set<Formula> sFSons = new HashSet<Formula>();
 		Set<Clause> sFClauses = f.getClauses();
-		List<Clause> lNonConsis = new ArrayList<Clause>();
-		Map<Clause, Formula> mCiFMinus = new HashMap<Clause, Formula>();
+		Map<Clause, Formula> mR3sigma = new HashMap<Clause, Formula>();
 
-		for (Clause ci : sFClauses) {
-			// 1.
-			Set<Clause> sCfMinus = new HashSet<Clause>(sFClauses);
-			sCfMinus.remove(ci);
-			Formula fMinus = new Formula(this.nvars, sCfMinus);
-
-			// 1.2
-			Set<Clause> sRi = new HashSet<Clause>();
-			for (Clause c : this.powerSet.getComputedSons(ci)) {
-				if (c.isIndependent(sCfMinus)) {
-					sRi.add(c);
-				}
-			}
-
-			// 1.3
-			if (!sRi.isEmpty()) {
-				Set<Clause> sFPrime = new HashSet<Clause>(sCfMinus);
-				sFPrime.addAll(sRi);
-				Formula fPrime = new Formula(this.nvars, sFPrime);
-				sFSons.add(fPrime);
-				continue;
-			}
-
-			// 2.1
-			if (fMinus.isConsistent()) {
-				sFSons.add(fMinus);
-			} else {
-				// 2.2
-				lNonConsis.add(ci);
-				mCiFMinus.put(ci, fMinus);
+		// Rule 3
+		for (Clause cSigma : sFClauses) {
+			Set<Clause> sFprime = new HashSet<Clause>(sFClauses);
+			sFprime.remove(cSigma);
+			Formula fprime = new Formula(this.nvars, sFprime);
+			Set<Clause> sFsigma = this.powerSet.getIndependent(sFprime);
+			if (!cSigma.isContainedIn(sFsigma) && fprime.isConsistent()) {
+				sFSons.add(fprime);
+				mR3sigma.put(cSigma, fprime);
 			}
 		}
+		
 		if (degenerated) {
-			for (Formula fDegen : mCiFMinus.values()) {
-				sFSons.add(fDegen);
+			for (Formula fprime : mR3sigma.values()) {
+				sFSons.add(fprime);
 			}
-		} else {
-			for (int i = 0; i < (lNonConsis.size() - 1); i++) {
-				Clause ci = lNonConsis.get(i);
-				for (int j = i + 1; j < lNonConsis.size(); j++) {
-					Clause cj = lNonConsis.get(j);
-					Clause cMeet = this.powerSet.meet(ci, cj);
-					if (cMeet != null) {
-						Set<Clause> sFPrime = new HashSet<Clause>(mCiFMinus.get(ci).getClauses());
-						sFPrime.remove(cj);
-						sFPrime.add(cMeet);
-						Formula fPrime = new Formula(this.nvars, sFPrime);
-						sFSons.add(fPrime);
-					}
+			return sFSons;
+		}
+		
+		// Rule 4
+		Set<Clause> sCallDom = new HashSet<Clause>();
+		for (Clause cSigma : sFClauses) {
+			sCallDom.addAll(this.powerSet.getDominantDirectly(cSigma));
+		}
+		sCallDom = this.powerSet.getMinimal(sCallDom);
+		Set<Clause> sCcandidates = new HashSet<Clause>();
+		for (Clause cSigma : sCallDom) {
+			if (!cSigma.contains(mR3sigma.keySet())) {
+				sCcandidates.add(cSigma);
+			}
+		}
+		
+		// FIXME add degenerate
+		for (Clause cSigma1 : sCcandidates) {
+			Set<Clause> sFprime = new HashSet<Clause>(sFClauses);
+			Set<Clause> sR = new HashSet<Clause>();
+			for (Clause cSigma : sFClauses) {
+				if (cSigma.dominatedStrictly(cSigma1)) {
+					sR.add(cSigma);
+					sFprime.remove(cSigma);
 				}
 			}
+			sFprime.add(cSigma1);
+			for (Clause cSigma2 : sCcandidates) {
+				if (cSigma2.equals(cSigma1)) continue;
+				boolean bFlag = true;
+				for (Clause cSigma : sR) {
+					if (!cSigma.dominatedStrictly(cSigma2)) {
+						bFlag = false;
+					}
+				}
+				if (bFlag) {
+					sFprime.add(cSigma2);
+				}
+			}
+			sFSons.add(new Formula(this.nvars, sFprime));
 		}
 		return sFSons;
 	}
@@ -180,7 +188,7 @@ public class HasseDiagram {
 	private Formula getConsistentFormula(Set<Clause> sfClauses, Set<Clause> set) {
 		Set<Clause> sCandSons = new HashSet<Clause>();
 		for (Clause c : set) {
-			sCandSons.addAll(powerSet.getComputedSons(c));
+			sCandSons.addAll(powerSet.getDominantDirectly(c));
 		}
 		// remove dominated clauses
 		Set<Clause> sPrime = new HashSet<Clause>(sfClauses);

@@ -23,9 +23,18 @@ import org.colomoto.function.core.Clause;
 import org.colomoto.function.core.Formula;
 import org.colomoto.function.core.HasseDiagram;
 
+/**
+ * Small GUI to compute the direct Parents/Siblings/Children of a given
+ * function. The function is defined as a set of sets of regulators.
+ * 
+ * @author Pedro T. Monteiro
+ * @author Jose' R. Cury
+ * @author Claudine Chaouiya
+ *
+ */
 public class GetFunctionNeighbours extends JFrame {
 	private static final long serialVersionUID = -2458646831659346077L;
-	
+
 	private JTextField jtfDim;
 	private JTextField jtfFunction;
 	private JCheckBox jcbParents;
@@ -35,7 +44,7 @@ public class GetFunctionNeighbours extends JFrame {
 	private JTextArea jtarea;
 
 	public GetFunctionNeighbours() {
-		this.setTitle("Function Neighbours");
+		this.setTitle("Function Direct Neighbours - GUI");
 		this.setLayout(new BorderLayout());
 
 		GridBagLayout gridbag = new GridBagLayout();
@@ -49,7 +58,7 @@ public class GetFunctionNeighbours extends JFrame {
 		top.add(new JLabel("Dimension:"), gbc);
 		gbc.gridx = 1;
 		this.jtfDim = new JTextField(5);
-		this.jtfDim.setText("3");
+		this.jtfDim.setText("4");
 		top.add(this.jtfDim, gbc);
 
 		y++;
@@ -59,28 +68,28 @@ public class GetFunctionNeighbours extends JFrame {
 		top.add(new JLabel("Function:"), gbc);
 		gbc.gridx = 1;
 		this.jtfFunction = new JTextField(30);
-		this.jtfFunction.setText("{{2},{1,3}}");
+		this.jtfFunction.setText("{{1,2,3},{1,3,4},{2,4}}");//"{{2},{1,3}}");
 		top.add(this.jtfFunction, gbc);
 
 		y++;
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.gridx = 1;
 		gbc.gridy = y;
-		this.jcbParents = new JCheckBox("Include Parents");
+		this.jcbParents = new JCheckBox("Compute function parents");
 		this.jcbParents.setSelected(true);
 		top.add(this.jcbParents, gbc);
 		y++;
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.gridx = 1;
 		gbc.gridy = y;
-		this.jcbSiblings = new JCheckBox("Include Siblings");
+		this.jcbSiblings = new JCheckBox("Compute function siblings");
 		this.jcbSiblings.setSelected(true);
 		top.add(this.jcbSiblings, gbc);
 		y++;
 		gbc.fill = GridBagConstraints.HORIZONTAL;
 		gbc.gridx = 1;
 		gbc.gridy = y;
-		this.jcbChildren = new JCheckBox("Include Children");
+		this.jcbChildren = new JCheckBox("Compute function children");
 		this.jcbChildren.setSelected(true);
 		top.add(this.jcbChildren, gbc);
 		y++;
@@ -103,14 +112,14 @@ public class GetFunctionNeighbours extends JFrame {
 				int nsize = Integer.parseInt(jtfDim.getText().trim());
 				Formula f;
 				try {
-				f = parseFormula(nsize, jtfFunction.getText().trim());
+					f = parseFormula(nsize, jtfFunction.getText().trim());
 					jtfFunction.setBackground(Color.WHITE);
 				} catch (NumberFormatException nfe) {
 					jtfFunction.setBackground(Color.RED);
 					return;
 				}
 				HasseDiagram hd = new HasseDiagram(nsize);
-				
+
 				Set<Formula> sParents;
 				if (jcbParents.isSelected() || jcbSiblings.isSelected()) {
 					sParents = hd.getFormulaParents(f, jcbDegen.isSelected());
@@ -123,7 +132,7 @@ public class GetFunctionNeighbours extends JFrame {
 				} else {
 					sChildren = new HashSet<Formula>();
 				}
-				
+
 				if (jcbParents.isSelected()) {
 					jtarea.append("------------------ Parents ------------------\n");
 					for (Formula parent : sParents) {
