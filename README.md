@@ -1,3 +1,8 @@
+> [!WARNING]
+> This repository is now deprecated.
+> Please consider using [pyFunctionHood](https://github.com/ptgm/pyfunctionhood) instead,
+> and reading the corresponding manuscript [arxiv:2407.01337](https://arxiv.org/abs/2407.01337).
+
 FunctionHood: Compute direct neighbours of any monotone Boolean Function
 =========================================================
 
